@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using eShopSolution.Data.Entities;
 using eShopSolution.Data.Configurations;
+using eShopSolution.Data.Extension;
 
 namespace eShopSolution.Data.EF
 {
@@ -25,7 +26,7 @@ namespace eShopSolution.Data.EF
         {
             //base.OnModelCreating(modelBuilder); 
 
-            // Áp dụng config fluent api của entity 
+            // Config fluent api for entity 
             modelBuilder.ApplyConfiguration(new CartConfiguration());
             modelBuilder.ApplyConfiguration(new AppConfigConfiguration());
             modelBuilder.ApplyConfiguration(new ProductConfiguration());
@@ -39,31 +40,23 @@ namespace eShopSolution.Data.EF
             modelBuilder.ApplyConfiguration(new ProductTranslationConfiguration());
             modelBuilder.ApplyConfiguration(new PromotionConfiguration());
             modelBuilder.ApplyConfiguration(new TransactionConfiguration());
+
+            // DataSeeding
+            modelBuilder.Seed();
         }
 
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }
-
         public DbSet<AppConfig> AppConfigs { get; set; }
-
-
         public DbSet<Cart> Carts { get; set; }
-
         public DbSet<CategoryTranslation> CategoryTranslations { get; set; }
         public DbSet<ProductInCategory> ProductInCategories { get; set; }
-
         public DbSet<Contact> Contacts { get; set; }
-
         public DbSet<Language> Languages { get; set; }
-
         public DbSet<Order> Orders { get; set; }
-
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<ProductTranslation> ProductTranslations { get; set; }
-
         public DbSet<Promotion> Promotions { get; set; }
-
-
         public DbSet<Transaction> Transactions { get; set; }
 
     }
