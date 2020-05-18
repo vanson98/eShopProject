@@ -6,6 +6,7 @@ using System;
 
 namespace eShopSolution.Data.Extension
 {
+    // Sử dụng cơ chế Data Seeding của EF giúp tạo dữ liệu giả
     public static class ModelBuilderExtensions
     {
         public static void Seed(this ModelBuilder modelBuilder)
