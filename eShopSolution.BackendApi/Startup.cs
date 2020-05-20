@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using eShopSolution.Utilities.Constants;
 using eShopSolution.Application.Catalog.Products;
+using eShopSolution.Application.Common;
 using Microsoft.OpenApi.Models;
 
 namespace eShopSolution.BackendApi
@@ -24,14 +25,16 @@ namespace eShopSolution.BackendApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllersWithViews();
+           
             services.AddDbContext<eShopDbContext>(options =>
                     options.UseSqlServer(Configuration.GetConnectionString(SystemConstants.MainConnectionString)));
-
+          
             // Cấu hình dependency injection
             // Mỗi lần yêu cầu một đối tượng từ IPublicProductService thì u/d sẽ khởi tạo PublicProductService
             services.AddTransient<IPublicProductService, PublicProductService>();// Mức độ : mỗi lần request sẽ khởi tạo 1 instance
-
+            services.AddTransient<IManageProductService, ManageProductService>();// Mức độ : mỗi lần request sẽ khởi tạo 1 instance
+            services.AddTransient<IStorageService, FileStorageService>();
+            services.AddControllersWithViews();
             // Cấu hình swagger
             services.AddSwaggerGen(c =>
             {
