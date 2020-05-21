@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using eShopSolution.ViewModels.Catalog.ProductImage;
 using eShopSolution.ViewModels.Catalog.Products;
 using eShopSolution.ViewModels.Common;
 using Microsoft.AspNetCore.Http;
@@ -17,29 +18,24 @@ namespace eShopSolution.Application.Catalog.Products
         
         Task AddViewCount(int productId);
  
-        // Update những thông tin mô tả chung
         Task<int> Update(ProductUpdateRequest request);
         
-        // Update giá nên để riêng ra
         Task<bool> UpdatePrice(int productId, decimal newPrice);
 
-        // Update stock 
         Task<bool> UpdateStock(int productId, int addedQuantity);
        
         Task<int> Delete(int productId);
 
-
-
-
-        // Get All Ảnh của sản phẩm
+        // image
         Task<List<ProductImageViewModel>> GetListImage(int productId);
 
-        Task<int> AddImages(int productId, List<IFormFile> files);
+        Task<ProductImageViewModel> GetImageById(int imageId);
 
-        Task<int> RemoveImages(int imageId);
+        Task<int> AddImage(int productId, ProductImageCreateRequest request);
 
-        // Update thông tin ảnh chư không update file vật lý
-        Task<int> UpdateImages(int imageId, string caption, bool isDefault);
+        Task<int> RemoveImage( int imageId);
+
+        Task<int> UpdateImage( int imageId, ProductImageUpdateRequest request);
 
        
     }
