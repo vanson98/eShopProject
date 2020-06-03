@@ -9,11 +9,16 @@ using Microsoft.Extensions.Hosting;
 using eShopSolution.Utilities.Constants;
 using eShopSolution.Application.Catalog.Products;
 using eShopSolution.Application.Common;
-using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Identity;
 using eShopSolution.Data.Entities;
 using eShopSolution.Application.System.Users;
 using System.Collections.Generic;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
+using System.IO;
+using System;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 namespace eShopSolution.BackendApi
 {
@@ -29,7 +34,7 @@ namespace eShopSolution.BackendApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllersWithViews();
+            services.AddControllers();
             services.AddDbContext<eShopDbContext>(options =>
                     options.UseSqlServer(Configuration.GetConnectionString(SystemConstants.MainConnectionString)));
 
@@ -47,10 +52,13 @@ namespace eShopSolution.BackendApi
             services.AddTransient<SignInManager<AppUser>, SignInManager<AppUser>>();
             services.AddTransient<RoleManager<AppRole>, RoleManager<AppRole>>();
             services.AddTransient<IUserService, UserService>();
+            
             // Cấu hình swagger
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Swagger eShop Solution", Version = "v1" });
+                // Cấu hình security cho swagger
+                // Khi call api thì sẽ truyền 1 header tên là Authorization, có kiểu là ApiKey
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Description = @"JWT Authorization header using the Bearer scheme. \r\n\r\n
@@ -62,6 +70,7 @@ namespace eShopSolution.BackendApi
                     Scheme = "Bearer"
                 });
 
+                // Yêu cầu khi gọi swagger phải truyền vào header một bearer
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement()
                   {
                     {
@@ -77,8 +86,40 @@ namespace eShopSolution.BackendApi
                           In = ParameterLocation.Header,
                         },
                         new List<string>()
-                      }
+                    }
                 });
+
+                // Set the comments path for the Swagger JSON and UI.
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
+            });
+
+            // Cấu hình verify Jwt
+            string issuer = Configuration.GetValue<string>("Tokens:Issuer");
+            string signingKey = Configuration.GetValue<string>("Tokens:Key");
+            byte[] signingKeyBytes = System.Text.Encoding.UTF8.GetBytes(signingKey);
+
+            services.AddAuthentication(opt =>
+            {
+                opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = false;
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = issuer,
+                    ValidateAudience = true,
+                    ValidAudience = issuer,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ClockSkew = System.TimeSpan.Zero,
+                    IssuerSigningKey = new SymmetricSecurityKey(signingKeyBytes)
+                };
             });
         }
 
@@ -98,7 +139,9 @@ namespace eShopSolution.BackendApi
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
+            app.UseAuthentication();
             app.UseRouting();
+            app.UseAuthorization();
 
             app.UseAuthorization();
 
