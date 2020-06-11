@@ -1,7 +1,6 @@
 ﻿using eShopSolution.Data.EF;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +18,9 @@ using System.IO;
 using System;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using FluentValidation.AspNetCore;
+using FluentValidation;
+using eShopSolution.ViewModels.System.Users;
 
 namespace eShopSolution.BackendApi
 {
@@ -34,7 +36,11 @@ namespace eShopSolution.BackendApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            // Web MVC thì sẽ là AddMvc()
+            // Delegate truyền vào AddFluentValidation có ý nghĩa là đăng kí dependency cho tất cả các Class Validator cùng project
+            // với class LoginRequestValidator
+            services.AddControllers().AddFluentValidation(fv=>fv.RegisterValidatorsFromAssemblyContaining<LoginRequestValidator>());
+
             services.AddDbContext<eShopDbContext>(options =>
                     options.UseSqlServer(Configuration.GetConnectionString(SystemConstants.MainConnectionString)));
 
@@ -52,6 +58,10 @@ namespace eShopSolution.BackendApi
             services.AddTransient<SignInManager<AppUser>, SignInManager<AppUser>>();
             services.AddTransient<RoleManager<AppRole>, RoleManager<AppRole>>();
             services.AddTransient<IUserService, UserService>();
+
+            // Cấu hình dependency injection validator (Đây là cách cầu hình đơn lẻ từng class)
+            services.AddTransient<IValidator<LoginRequest>, LoginRequestValidator>();
+            
             
             // Cấu hình swagger
             services.AddSwaggerGen(c =>
